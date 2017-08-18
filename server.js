@@ -16,6 +16,10 @@ app.get("/", function (request, response) {
   response.sendFile(__dirname + '/views/index.html');
 });
 
+app.get("/models/:model", function (request, response) {
+  response.sendFile(__dirname + '/views/models/'+request.params.model+'.json');
+});
+
 
 // listen for requests :)
 var listener = app.listen(process.env.PORT, function () {
