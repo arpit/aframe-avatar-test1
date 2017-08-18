@@ -18,16 +18,157 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="/style.css">
 
-    <script src="https://aframe.io/releases/0.6.1/aframe.min.js"></script>
 
+    <script src="https://rawgit.com/chenzlabs/aframe/master/dist/aframe-master.min.js"></script>
+    <script src="https://cdn.rawgit.com/donmccurdy/aframe-extras/v3.9.0/dist/aframe-extras.min.js"></script>
+    
+    <script src="fullik/Fullik.js"></script>
+    <script src="fullik/Geom.js"></script>
+    <script src="fullik/Joint.js"></script>  
+    <script src="fullik/Bone.js"></script>
+    <script src="fullik/Chain.js"></script>
+    <script src="fullik/Structure.js"></script>
+
+    
+    <script>
+      
+      function nearestParentQuerySelector(selector, from) {
+        var rtn;
+        for (var el = from; el && !rtn; el = el.parentElement) {
+          rtn = el.querySelector(selector);
+        }
+        return rtn;
+      }
+      
+      var X_AXIS = new Fullik.V3( 1, 0, 0 );
+      var Y_AXIS = new Fullik.V3( 0, 1, 0 );
+      var Z_AXIS = new Fullik.V3( 0, 0, 1 );
+      
+      AFRAME.registerComponent("sync-model-position", {
+        schema: {
+          model: {type: 'selector'},
+          //parent: {type: 'selector'},
+          origin: {type: 'string'},
+          head: {type: 'string', default: '.hmd'},
+          leftHand: {type: 'string', default: '.left-hand'},
+          rightHand: {type: 'string', default: '.right-hand'},
+          headBone: {default: 2},
+          leftBone: {default: 5}, 
+          rightBone: {default: 8},
+        },
+        
+        modelElement: function () { return this.data.model || this.el; },
+
+        update: function (oldData) {
+          this.origin = nearestParentQuerySelector(this.data.origin, this.modelElement());
+          this.head = nearestParentQuerySelector(this.data.head, this.modelElement());
+          this.leftHand = nearestParentQuerySelector(this.data.leftHand, this.modelElement());
+          this.rightHand = nearestParentQuerySelector(this.data.rightHand, this.modelElement());
+        },
+
+        rememberModel: function () {
+          if (!this.model) {
+            var jsonModel = this.modelElement().components['json-model'];
+            if (jsonModel) {
+              this.modelType = 'json-model';
+              this.model = jsonModel.model;
+            } else {
+              var objectModel = this.modelElement().components['object-model'];
+              if (objectModel && objectModel.model && objectModel.model.children && objectModel.model.children.length) {
+                this.modelType = 'object-model';
+                this.model = objectModel.model.children[0];
+              }
+            }
+          }
+          return this.model;
+        },
+
+        rememberBones: function () {
+          if (!this.bones) {
+            if (!this.model || !this.model.geometry) { return; }
+            this.bones = this.model.skeleton.bones;
+          }
+          return this.bones;            
+        },
+          
+        tick: function (t, dt) {
+          var bone, obj, origin;
+            
+          if (!this.rememberModel()) { return; }  
+          if (!this.rememberBones()) { return; }  
+
+          if (!this.origin) this.origin = nearestParentQuerySelector(this.data.origin, this.modelElement());
+          if (!this.head) this.head = nearestParentQuerySelector(this.data.head, this.modelElement());
+          if (!this.leftHand) this.leftHand = nearestParentQuerySelector(this.data.leftHand, this.modelElement());
+          if (!this.rightHand) this.rightHand = nearestParentQuerySelector(this.data.rightHand, this.modelElement());
+
+          origin = this.origin;
+          bone = this.bones[this.data.headBone];
+          obj = this.head;
+          
+          console.log("bone", bone)
+          console.log("obj", obj)
+          console.log("origin", origin)
+          
+          
+          if (obj) {
+            bone.position.copy(obj.object3D.position);
+            if (origin) {
+              bone.position.sub(origin.object3D.position);
+              //bone.quaternion.copy(obj.object3D.quaternion);
+              bone.position.applyAxisAngle(Y_AXIS, -origin.object3D.rotation.y);
+            }
+          }
+          
+          bone = this.bones[this.data.leftBone];
+          obj = this.leftHand;
+          if (obj) {
+            bone.position.copy(obj.object3D.position);
+            if (origin) {
+              bone.position.sub(origin.object3D.position);
+              //bone.quaternion.copy(obj.object3D.quaternion);
+              bone.position.applyAxisAngle(Y_AXIS, -origin.object3D.rotation.y);
+            }
+          } 
+          
+          bone = this.bones[this.data.rightBone];
+          obj = this.rightHand;
+          if (obj) {
+            bone.position.copy(obj.object3D.position);
+            if (origin) {
+              bone.position.sub(origin.object3D.position);
+              //bone.quaternion.copy(obj.object3D.quaternion);
+              bone.position.applyAxisAngle(Y_AXIS, -origin.object3D.rotation.y);
+            }
+          }
+        }
+      });      
+      
+    </script>
   </head>
   <body>
     <a-scene>
       <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
-      <a-sphere position="0 1.25 -5" radius="1.25" color="#EF2D5E"></a-sphere>
-      <a-cylinder position="1 0.75 -3" radius="0.5" height="1.5" color="#FFC65D"></a-cylinder>
-      <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
-      <a-sky color="#ECECEC"></a-sky>
+
+      <a-entity>
+        
+        <a-entity id="user" 
+                sync-model-position="origin:.hmd"
+                object-model="src: models/avatar_flipped_monochrome" 
+                position="0 1.6 -1.2">
+          
+        <a-entity class="hmd">
+          <a-sphere position="-0.05 0.1 -0.1" scale="0.02 0.02 0.02" color="black"></a-sphere>
+          <a-sphere position="0.05 0.1 -0.1" scale="0.02 0.02 0.02" color="black"></a-sphere>
+          <a-cone rotation="-90 0 0" open-ended="true" 
+            position="0 0 -0.15" scale="0.1 0.3 0.2" color="white">
+          </a-cone>
+        </a-entity>
+      </a-entity>
+      
+      
+      </a-entity>
+      
     </a-scene>
 
 
