@@ -20,6 +20,13 @@ app.get("/models/:model", function (request, response) {
   response.sendFile(__dirname + '/views/models/'+request.params.model+'.json');
 });
 
+app.get("/js/:file", function (request, response) {
+  response.sendFile(__dirname + '/js/'+request.params.file);
+});
+
+app.get("/:file", function (request, response) {
+  response.sendFile(__dirname + '/views/'+request.params.file);
+});
 
 // listen for requests :)
 var listener = app.listen(process.env.PORT, function () {

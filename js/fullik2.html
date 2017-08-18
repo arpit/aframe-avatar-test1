@@ -1,6 +1,5 @@
 <html>
 <head>
-  <title>Full Ik 2</title>
 
 <!--
 <script src="http://localhost:9000/build/aframe-master.js"></script>
@@ -9,117 +8,15 @@
 <!--
 <script src="https://lo-th.github.io/fullik/build/fullik.js"></script>
 -->
-<script src="/js/Fullik.js"></script>
-<script src="/js/Geom.js"></script>
-<script src="/js/Joint.js"></script>
-<script src="/js/Bone.js"></script>
-<script src="/js/Chain.js"></script>
-<script src="/js/Structure.js"></script>
+<script src="Fullik.js"></script>
+<script src="Geom.js"></script>
+<script src="Joint.js"></script>
+<script src="Bone.js"></script>
+<script src="Chain.js"></script>
+<script src="Structure.js"></script>
 
 <script src="https://cdn.rawgit.com/donmccurdy/aframe-extras/v3.9.0/dist/aframe-extras.min.js"></script>
- <script>
-      function nearestParentQuerySelector(selector, from) {
-        var rtn;
-        for (var el = from; el && !rtn; el = el.parentElement) {
-          rtn = el.querySelector(selector);
-        }
-        return rtn;
-      }
-   
-      AFRAME.registerComponent("sync-model-position", {
-        schema: {
-          model: {type: 'selector'},
-          //parent: {type: 'selector'},
-          origin: {type: 'string'},
-          head: {type: 'string', default: '.hmd'},
-          leftHand: {type: 'string', default: '.left-hand'},
-          rightHand: {type: 'string', default: '.right-hand'},
-          headBone: {default: 2},
-          leftBone: {default: 5}, 
-          rightBone: {default: 8},
-        },
-        
-        modelElement: function () { return this.data.model || this.el; },
 
-        update: function (oldData) {
-          this.origin = nearestParentQuerySelector(this.data.origin, this.modelElement());
-          this.head = nearestParentQuerySelector(this.data.head, this.modelElement());
-          this.leftHand = nearestParentQuerySelector(this.data.leftHand, this.modelElement());
-          this.rightHand = nearestParentQuerySelector(this.data.rightHand, this.modelElement());
-        },
-
-        rememberModel: function () {
-          if (!this.model) {
-            var jsonModel = this.modelElement().components['json-model'];
-            if (jsonModel) {
-              this.modelType = 'json-model';
-              this.model = jsonModel.model;
-            } else {
-              var objectModel = this.modelElement().components['object-model'];
-              if (objectModel && objectModel.model && objectModel.model.children && objectModel.model.children.length) {
-                this.modelType = 'object-model';
-                this.model = objectModel.model.children[0];
-              }
-            }
-          }
-          return this.model;
-        },
-
-        rememberBones: function () {
-          if (!this.bones) {
-            if (!this.model || !this.model.geometry) { return; }
-            this.bones = this.model.skeleton.bones;
-          }
-          return this.bones;            
-        },
-          
-        tick: function (t, dt) {
-          var bone, obj, origin;
-            
-          if (!this.rememberModel()) { return; }  
-          if (!this.rememberBones()) { return; }  
-
-          if (!this.origin) this.origin = nearestParentQuerySelector(this.data.origin, this.modelElement());
-          if (!this.head) this.head = nearestParentQuerySelector(this.data.head, this.modelElement());
-          if (!this.leftHand) this.leftHand = nearestParentQuerySelector(this.data.leftHand, this.modelElement());
-          if (!this.rightHand) this.rightHand = nearestParentQuerySelector(this.data.rightHand, this.modelElement());
-
-          origin = this.origin;
-          bone = this.bones[this.data.headBone];
-          obj = this.head;
-          if (obj) {
-            bone.position.copy(obj.object3D.position);
-            if (origin) {
-              bone.position.sub(origin.object3D.position);
-              //bone.quaternion.copy(obj.object3D.quaternion);
-              bone.position.applyAxisAngle(Y_AXIS, -origin.object3D.rotation.y);
-            }
-          }
-          
-          bone = this.bones[this.data.leftBone];
-          obj = this.leftHand;
-          if (obj) {
-            bone.position.copy(obj.object3D.position);
-            if (origin) {
-              bone.position.sub(origin.object3D.position);
-              //bone.quaternion.copy(obj.object3D.quaternion);
-              bone.position.applyAxisAngle(Y_AXIS, -origin.object3D.rotation.y);
-            }
-          } 
-          
-          bone = this.bones[this.data.rightBone];
-          obj = this.rightHand;
-          if (obj) {
-            bone.position.copy(obj.object3D.position);
-            if (origin) {
-              bone.position.sub(origin.object3D.position);
-              //bone.quaternion.copy(obj.object3D.quaternion);
-              bone.position.applyAxisAngle(Y_AXIS, -origin.object3D.rotation.y);
-            }
-          }
-        }
-      });
-    </script>
 <script>
   var X_AXIS = new Fullik.V3( 1, 0, 0 );
   var Y_AXIS = new Fullik.V3( 0, 1, 0 );
@@ -558,7 +455,7 @@
     </a-entity>
   
     <a-entity id="left-hand" non-vr-position="-0.25 1.05 -0.25" oculus-touch-controls="hand:left" vive-controls="hand:left" tracker-marker="L">
-      <a-sphere opacity="0.5" scale="0.025 0.02 0.1" color="#ff00ff">
+      <a-sphere opacity="0.5" scale="0.025 0.02 0.1">
         <a-cone opacity="0.5" color="red" position="0 -0.25 -1" scale="0.5 2 0.5" rotation="-90 0 0"></a-cone>
       </a-sphere>
     </a-entity>
@@ -583,13 +480,6 @@
 
     <!-- really we only want position nailed, and Y rotation, not full orientation -->
     <a-entity sync-pose="#head" id="model">
-      
-      <a-entity id="arpit" 
-              class="avatar-model"
-              position="0 0 -2"
-            object-model="src: models/avatar_flipped_monochrome"
-            sync-model-position="origin:#head;leftHand:#left-hand;rightHand:#right-hand"></a-entity>
-      
       <!-- Children init before parent, so to make sure we have structure in time, make it peer -->
       <a-entity id="structure" structure></a-entity>
       <!-- Build the body from head down with bones -->
@@ -600,11 +490,12 @@
       <a-entity leg="side:right;target:#right-foot;structure:#structure;origin:#head"></a-entity>      
     </a-entity>
     
-    
   </a-entity>
   
-  
-   
+  <a-entity id="arpit" position="0 0 -2"
+            object-model="src: avatar_scene.json">
+   <a-entity tracker-marker="^"></a-entity>
+  </a-entity>
   
   
   <!-- third tracker, automated correction if any -->
