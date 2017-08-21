@@ -39,6 +39,12 @@
           rightBone: {default: 8},
         },
         
+        init: function (){
+          console.log("Model: "+this.data.model)
+          this.moveLowerArm = this.moveLowerArm.bind(this)
+          window.syncer = this;
+        },
+        
         modelElement: function () { return this.data.model || this.el; },
 
         update: function (oldData) {
@@ -64,6 +70,33 @@
           }
           return this.model;
         },
+        
+        moveLowerArm: function(){
+          if(!this.bones) return
+          var lowerArmL;
+          
+          
+          
+          for(var i=0; i< this.bones.length; i++){
+            var bone = this.bones[i]
+            if(bone.name == "LowerArm.L"){
+              lowerArmL = bone
+            }
+          }
+          
+          if(!this.structure){
+            this.structure = document.querySelector("#structure").components.structure
+          }
+          
+          for(var j=0; j<this.structure.solver.chains.length; j++){
+            var chain = this.structure.solver.chains[j]
+            console.log("CHAIN NAME: ", chain.name )
+          }
+          
+          
+
+          
+        },
 
         rememberBones: function () {
           if (!this.bones) {
@@ -74,7 +107,9 @@
         },
           
         tick: function (t, dt) {
-          var bone, obj, origin;
+          var bone, obj, origin;          
+          this.moveLowerArm();
+          
             
           if (!this.rememberModel()) { return; }  
           if (!this.rememberBones()) { return; }  
@@ -83,7 +118,9 @@
           if (!this.head) this.head = nearestParentQuerySelector(this.data.head, this.modelElement());
           if (!this.leftHand) this.leftHand = nearestParentQuerySelector(this.data.leftHand, this.modelElement());
           if (!this.rightHand) this.rightHand = nearestParentQuerySelector(this.data.rightHand, this.modelElement());
-
+          
+          
+          
           origin = this.origin;
           bone = this.bones[this.data.headBone];
           obj = this.head;
@@ -149,11 +186,12 @@
       
         var size = bone.mLength;
         var color = bone.color;
+        
         var g = new THREE.CylinderBufferGeometry ( scale*1, scale*0.5, size, 4 );
         g.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) )
         g.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, size*0.5 ) );
         var m = new THREE.MeshStandardMaterial();
-        m.color.setHex( color );
+        m.color.setHex( parseInt(color) );
 
         var m2 = new THREE.MeshBasicMaterial({ wireframe : true });
 
@@ -295,6 +333,7 @@
 */
       this.basebone = new Fullik.Bone(new Fullik.V3(0, 0, 0),
                                       new Fullik.V3(0, -0.125 /* eyes to bottom of head */ - this.data.neck, 0.08));
+      
       this.chain.addBone(this.basebone);      
       this.chain.setRotorBaseboneConstraint("local", this.basebone.getDirectionUV(), 0);
       // what the hell? spine goes straight up regardless of axis unless we rotor constrain, and even then it's the wrong way?
@@ -348,8 +387,17 @@
     
     init: function () {
       this.chain = newChain(this.data.color);
+      var chain_name = this.data.side == "right" ? "right_arm_chain" : "left_arm_chain"
+      console.log("Setting name "+chain_name )
+      
+      this.chain.name = chain_name
+      console.log(" get chain name "+this.chain.name )
+      
       var sideSign = (this.data.side === 'right' ? 1 : -1);
       this.basebone = new Fullik.Bone(new Fullik.V3( 0, 0, 0 ), new Fullik.V3( 0, this.data.neckToShoulder, 0));
+      var name = this.data.side == "right" ? "right_arm_bone" : "left_arm_bone"
+      this.basebone.setName( name )
+      console.log("get name ",this.basebone.name)
       this.chain.addBone(this.basebone);
 
       // FIXME: some or all of these should be hinged
@@ -585,6 +633,7 @@
     <a-entity sync-pose="#head" id="model">
       
       <a-entity id="arpit" 
+                
               class="avatar-model"
               position="0 0 -2"
             object-model="src: models/avatar_flipped_monochrome"
@@ -594,8 +643,8 @@
       <a-entity id="structure" structure></a-entity>
       <!-- Build the body from head down with bones -->
       <a-entity spine="target:#head;structure:#structure"></a-entity>
-      <a-entity arm="side:left;target:#left-hand;structure:#structure;origin:#head"></a-entity>
-      <a-entity arm="side:right;target:#right-hand;structure:#structure;origin:#head"></a-entity>      
+      <a-entity class="left_arm_entity" arm="side:left;target:#left-hand;structure:#structure;origin:#head"></a-entity>
+      <a-entity arm="side:right;target:#right-hand;structure:#structure;origin:#head;color:0xff00ff"></a-entity>      
       <a-entity leg="side:left;target:#left-foot;structure:#structure;origin:#head"></a-entity>
       <a-entity leg="side:right;target:#right-foot;structure:#structure;origin:#head"></a-entity>      
     </a-entity>
