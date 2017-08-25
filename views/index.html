@@ -5,7 +5,9 @@
 <!--
 <script src="http://localhost:9000/build/aframe-master.js"></script>
 -->
-<script src="https://rawgit.com/chenzlabs/aframe/master/dist/aframe-master.js"></script>
+<!--script src="https://rawgit.com/chenzlabs/aframe/master/dist/aframe-master.js"></script -->
+<script src="https://rawgit.com/aframevr/aframe/3f116d9/dist/aframe-master.min.js"></script>
+
 <!--
 <script src="https://lo-th.github.io/fullik/build/fullik.js"></script>
 -->
@@ -41,6 +43,8 @@
 
         init: function (){
           window.syncComponent = this;
+          window.positioned = false;
+          this.rememberBones = this.rememberBones.bind(this)
         },
 
         modelElement: function () { return this.data.model || this.el; },
@@ -86,7 +90,7 @@
           var righthandBoneIK = rightArmChain.bones[3]
 
           window.leftIKs = [leftCollarBoneIK, leftUpperArmBoneIK, leftLowerArmBoneIK, lefthandBoneIK ]
-
+          window.rightIKs = [rightCollarBoneIK, rightUpperArmBoneIK, rightLowerArmBoneIK, righthandBoneIK]
           // upperArmL.position.x = leftUpperArmBoneIK.getEndLocation().x
           // upperArmL.position.y = leftUpperArmBoneIK.getEndLocation().y
           // upperArmL.position.z = leftUpperArmBoneIK.getEndLocation().z
@@ -102,15 +106,14 @@
           this.lowerArmL.position.x = leftLowerArmBoneIK.getStartLocation().x
           this.lowerArmL.position.y = leftLowerArmBoneIK.getStartLocation().y
           this.lowerArmL.position.z = leftLowerArmBoneIK.getStartLocation().z
-
-
-          this.upperArmR.position.x = leftUpperArmBoneIK.getStartLocation().x
-          this.upperArmR.position.y = leftUpperArmBoneIK.getStartLocation().y
-          this.upperArmR.position.z = leftUpperArmBoneIK.getStartLocation().z
-
-          this.lowerArmR.position.x = leftLowerArmBoneIK.getStartLocation().x
-          this.lowerArmR.position.y = leftLowerArmBoneIK.getStartLocation().y
-          this.lowerArmR.position.z = leftLowerArmBoneIK.getStartLocation().z
+          //
+          // this.upperArmR.position.x = leftUpperArmBoneIK.getStartLocation().x
+          // this.upperArmR.position.y = leftUpperArmBoneIK.getStartLocation().y
+          // this.upperArmR.position.z = leftUpperArmBoneIK.getStartLocation().z
+          //
+          // this.lowerArmR.position.x = leftLowerArmBoneIK.getStartLocation().x
+          // this.lowerArmR.position.y = leftLowerArmBoneIK.getStartLocation().y
+          // this.lowerArmR.position.z = leftLowerArmBoneIK.getStartLocation().z
 
 
 
@@ -130,6 +133,14 @@
               }
             }
           }
+
+          // if(!window.positioned){
+          //   window.positioned = true;
+          //   this.upperArmL.position.set(0,0,0)
+          //   this.upperArmR.position.set(0,0,0)
+          //   return;
+          // }
+
           return this.bones;
         },
 
@@ -359,8 +370,9 @@
       this.chain.addConsecutiveRotorConstrainedBone(Y_AXIS, this.data.neck, 40);
 */
       this.basebone = new Fullik.Bone(new Fullik.V3(0, 0, 0),
-                                      new Fullik.V3(0, -0.125 /* eyes to bottom of head */ - this.data.neck, 0.08));
+                                      new Fullik.V3(0, -0.125 /* eyes to bottom of head */ - this.data.neck, 0));
 
+      window.head = this.basebone
       this.chain.addBone(this.basebone);
       this.chain.setRotorBaseboneConstraint("local", this.basebone.getDirectionUV(), 0);
       // what the hell? spine goes straight up regardless of axis unless we rotor constrain, and even then it's the wrong way?
@@ -615,6 +627,31 @@
 </head>
 <body>
 
+  <script>
+  var captures
+  function onCaptureClick(){
+    if(!captures){
+      captures = []
+    }
+    var capture = {
+      "head": { "start" : window.head.getStartLocation(), "end": window.head.getEndLocation()}
+    }
+
+    for(var i = 0; i < window.leftIKs.length; i++){
+      capture["left_bone_"+i] = {"start" : window.leftIKs[i].getStartLocation(), "end": window.leftIKs[i].getEndLocation()}
+    }
+
+    captures.push( capture )
+  }
+
+  function onPrintCaptures(){
+    console.log(JSON.stringify(captures))
+  }
+  </script>
+
+<a href="#" onClick="onCaptureClick()">Capture</a>
+<a href="#" onClick="onPrintCaptures()">Print</a>
+
 <a-scene>
   <a-sky color="#3CF"></a-sky>
   <a-box opacity="0.5" depth="10" width="10" height="0.1" position="0 -0.05 0" color="brown"></a-box>
@@ -660,9 +697,10 @@
       <a-entity id="arpit"
 
               class="avatar-model"
-              position="0 2 0"
+              position="0 0 -2"
             object-model="src: models/avatar_flipped_monochrome"
             sync-model-position="origin:#head;leftHand:#left-hand;rightHand:#right-hand"></a-entity>
+
 
       <!-- Children init before parent, so to make sure we have structure in time, make it peer -->
       <a-entity id="structure" structure></a-entity>
@@ -750,6 +788,10 @@
   } else {
     sceneEl.addEventListener('loaded', onSceneLoaded);
   }
+
+
+
 </script>
+
 </body>
 </html>
