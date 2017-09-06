@@ -73,8 +73,47 @@
           return this.model;
         },
 
+        setPosition:function(bone, src){
+          bone.position.x = src.getStartLocation().x;
+          bone.position.y = src.getStartLocation().y;
+          bone.position.z = src.getStartLocation().z;
+        },
+
         moveArms: function(){
           if(!this.bones) return
+
+
+
+          // window.leftIKs = [leftCollarBoneIK, leftUpperArmBoneIK, leftLowerArmBoneIK, lefthandBoneIK ]
+          // window.rightIKs = [rightCollarBoneIK, rightUpperArmBoneIK, rightLowerArmBoneIK, righthandBoneIK]
+
+          // window.leftIKs = window.structure.solver.chains[1].bones
+          // window.rightIKs =  window.structure.solver.chains[2].bones
+
+          this.setPosition(this.collarL, window.structure.solver.chains[1].bones[0])
+          this.setPosition(this.upperArmL, window.structure.solver.chains[1].bones[1])
+          this.setPosition(this.lowerArmL, window.structure.solver.chains[1].bones[2])
+          this.setPosition(this.handL, window.structure.solver.chains[1].bones[3])
+
+          this.setPosition(this.collarR, window.structure.solver.chains[2].bones[0])
+          this.setPosition(this.upperArmR, window.structure.solver.chains[2].bones[1])
+          this.setPosition(this.lowerArmR, window.structure.solver.chains[2].bones[2])
+          this.setPosition(this.handR, window.structure.solver.chains[2].bones[3])
+
+
+          // this.upperArmL.position.x = window.structure.solver.chains[1].bones[1].getStartLocation().x
+          // this.upperArmL.position.y = window.structure.solver.chains[1].bones[1].getStartLocation().y
+          // this.upperArmL.position.z = window.structure.solver.chains[1].bones[1].getStartLocation().z
+          //
+          // this.lowerArmL.position.x = window.structure.solver.chains[1].bones[2].getStartLocation().x
+          // this.lowerArmL.position.y =  window.structure.solver.chains[1].bones[2].getStartLocation().y
+          // this.lowerArmL.position.z =  window.structure.solver.chains[1].bones[2].getStartLocation().z
+          //
+          // this.handL.position.x = window.structure.solver.chains[1].bones[3].getStartLocation().x
+          // this.handL.position.y =  window.structure.solver.chains[1].bones[3].getStartLocation().y
+          // this.handL.position.z =  window.structure.solver.chains[1].bones[3].getStartLocation().z
+
+          /*
 
           var leftArmChain = document.querySelector(".left_arm_entity").components.arm.chain;
           var rightArmChain = document.querySelector(".right_arm_entity").components.arm.chain;
@@ -89,45 +128,37 @@
           var rightLowerArmBoneIK = rightArmChain.bones[2]
           var righthandBoneIK = rightArmChain.bones[3]
 
-          // window.leftIKs = [leftCollarBoneIK, leftUpperArmBoneIK, leftLowerArmBoneIK, lefthandBoneIK ]
-          // window.rightIKs = [rightCollarBoneIK, rightUpperArmBoneIK, rightLowerArmBoneIK, righthandBoneIK]
+          this.collarL.position.x = leftCollarBoneIK.getStartLocation().x
+          this.collarL.position.y = leftCollarBoneIK.getStartLocation().y
+          this.collarL.position.z = leftCollarBoneIK.getStartLocation().z
 
-          window.leftIKs = window.structure.solver.chains[1].bones
-          window.rightIKs =  window.structure.solver.chains[2].bones
+          this.upperArmL.position.x = leftUpperArmBoneIK.getStartLocation().x
+          this.upperArmL.position.y = leftUpperArmBoneIK.getStartLocation().y
+          this.upperArmL.position.z = leftUpperArmBoneIK.getStartLocation().z
 
+          this.lowerArmL.position.x = leftLowerArmBoneIK.getStartLocation().x
+          this.lowerArmL.position.y = leftLowerArmBoneIK.getStartLocation().y
+          this.lowerArmL.position.z = leftLowerArmBoneIK.getStartLocation().z
 
-          this.upperArmL.position.x = window.structure.solver.chains[1].bones[1].getStartLocation().x
-          this.upperArmL.position.y = window.structure.solver.chains[1].bones[1].getStartLocation().y
-          this.upperArmL.position.z = window.structure.solver.chains[1].bones[1].getStartLocation().z
+          this.handL.position.x = lefthandBoneIK.getStartLocation().x
+          this.handL.position.y = lefthandBoneIK.getStartLocation().y
+          this.handL.position.z = lefthandBoneIK.getStartLocation().z
 
-          this.lowerArmL.position.x = window.structure.solver.chains[1].bones[2].getStartLocation().x
-          this.lowerArmL.position.y =  window.structure.solver.chains[1].bones[2].getStartLocation().y
-          this.lowerArmL.position.z =  window.structure.solver.chains[1].bones[2].getStartLocation().z
-
-          this.handL.position.x = window.structure.solver.chains[1].bones[3].getStartLocation().x
-          this.handL.position.y =  window.structure.solver.chains[1].bones[3].getStartLocation().y
-          this.handL.position.z =  window.structure.solver.chains[1].bones[3].getStartLocation().z
-
-          // this.upperArmL.position.x = leftUpperArmBoneIK.getStartLocation().x
-          // this.upperArmL.position.y = leftUpperArmBoneIK.getStartLocation().y
-          // this.upperArmL.position.z = leftUpperArmBoneIK.getStartLocation().z
-          //
-          // this.lowerArmL.position.x = leftLowerArmBoneIK.getStartLocation().x
-          // this.lowerArmL.position.y = leftLowerArmBoneIK.getStartLocation().y
-          // this.lowerArmL.position.z = leftLowerArmBoneIK.getStartLocation().z
+          */
 
           //this.upperArmR.position.set( window.structure.solver.chains[2].bones[1].getStartLocation() )
-          this.upperArmR.position.x = window.structure.solver.chains[2].bones[1].getStartLocation().x
-          this.upperArmR.position.y = window.structure.solver.chains[2].bones[1].getStartLocation().y
-          this.upperArmR.position.z = window.structure.solver.chains[2].bones[1].getStartLocation().z
-
-          this.lowerArmR.position.x = window.structure.solver.chains[2].bones[2].getStartLocation().x
-          this.lowerArmR.position.y = window.structure.solver.chains[2].bones[2].getStartLocation().y
-          this.lowerArmR.position.z = window.structure.solver.chains[2].bones[2].getStartLocation().z
-
-          this.handR.position.x = window.structure.solver.chains[2].bones[3].getStartLocation().x
-          this.handR.position.y =  window.structure.solver.chains[2].bones[3].getStartLocation().y
-          this.handR.position.z =  window.structure.solver.chains[2].bones[3].getStartLocation().z
+          //console.log( window.structure.solver.chains[2])
+          // this.upperArmR.position.x = window.structure.solver.chains[2].bones[1].getStartLocation().x
+          // this.upperArmR.position.y = window.structure.solver.chains[2].bones[1].getStartLocation().y
+          // this.upperArmR.position.z = window.structure.solver.chains[2].bones[1].getStartLocation().z
+          //
+          // this.lowerArmR.position.x = window.structure.solver.chains[2].bones[2].getStartLocation().x
+          // this.lowerArmR.position.y = window.structure.solver.chains[2].bones[2].getStartLocation().y
+          // this.lowerArmR.position.z = window.structure.solver.chains[2].bones[2].getStartLocation().z
+          //
+          // this.handR.position.x = window.structure.solver.chains[2].bones[3].getStartLocation().x
+          // this.handR.position.y =  window.structure.solver.chains[2].bones[3].getStartLocation().y
+          // this.handR.position.z =  window.structure.solver.chains[2].bones[3].getStartLocation().z
 
           //this.lowerArmR.position.set( window.structure.solver.chains[2].bones[2].getStartLocation() )
 
@@ -151,7 +182,10 @@
             this.bones = this.model.skeleton.bones;
             for(var i=0; i< this.bones.length; i++){
               var bone = this.bones[i]
+              window[bone.name.split(".").join("")] = bone
               switch(bone.name){
+                case("Collar.L"): this.collarL = bone; break;
+                case("Collar.R"): this.collarR = bone; break;
                 case ("UpperArm.L"): this.upperArmL = bone; break;
                 case ("UpperArm.R"): this.upperArmR = bone; break;
                 case ("LowerArm.L"): this.lowerArmL = bone; break;
@@ -162,14 +196,6 @@
               }
             }
           }
-
-          // if(!window.positioned){
-          //   window.positioned = true;
-          //   this.upperArmL.position.set(0,0,0)
-          //   this.upperArmR.position.set(0,0,0)
-          //   return;
-          // }
-
           return this.bones;
         },
 
@@ -446,7 +472,7 @@
     schema: {
       structure: {type: 'selector'},
       side: {type: 'string', oneOf: ['left', 'right'], default: 'right'},
-      neckToShoulder: {default: 0.12},
+      neckToShoulder: {default: 0.20},
       shoulderToElbow: {default: 0.24},
       elbowToWrist: {default: 0.24},
       wristToTip: {default: 0.05},
@@ -459,6 +485,9 @@
       this.chain = newChain(this.data.color);
 
       var chain_name = this.data.side == "right" ? "right_arm_chain" : "left_arm_chain"
+
+      this.data.side == "right"? window.rightIKs = this : window.leftIKs = this;
+
       this.chain.name = chain_name
 
       var sideSign = (this.data.side === 'right' ? 1 : -1);
@@ -671,11 +700,12 @@
 
 
 
-    for(var i = 0; i < window.leftIKs.length; i++){
-      if(i==2){
-        console.log("start for bone 2: ", window.leftIKs[i].getStartLocation())
-      }
-      capture["left_bone_"+i] = {"start" : window.leftIKs[i].getStartLocation(), "end": window.leftIKs[i].getEndLocation()}
+    for(var i = 0; i < window.structure.solver.chains[1].bones.length; i++){
+      capture["left_bone_"+i] = {"start" : window.structure.solver.chains[1].bones[i].getStartLocation(), "end": window.structure.solver.chains[1].bones[i].getEndLocation()}
+    }
+
+    for(var i = 0; i < window.structure.solver.chains[2].bones.length; i++){
+      capture["right_bone_"+i] = {"start" : window.structure.solver.chains[2].bones[i].getStartLocation(), "end": window.structure.solver.chains[2].bones[i].getEndLocation()}
     }
 
     captures.push( capture )
@@ -728,15 +758,17 @@
       </a-sphere>
     </a-entity>
 
+
+
+
     <!-- really we only want position nailed, and Y rotation, not full orientation -->
     <a-entity sync-pose="#head" id="model">
 
       <a-entity id="arpit"
-
               class="avatar-model"
-              position="0 0 -2"
-            object-model="src: models/avatar_flipped_monochrome"
-            sync-model-position="origin:#head;leftHand:#left-hand;rightHand:#right-hand"></a-entity>
+              position="0 0 0"
+              object-model="src: models/avatar_flipped_chestbones"
+              sync-model-position="origin:#head;leftHand:#left-hand;rightHand:#right-hand"></a-entity>
 
 
       <!-- Children init before parent, so to make sure we have structure in time, make it peer -->
@@ -748,13 +780,7 @@
       <a-entity leg="side:left;target:#left-foot;structure:#structure;origin:#head"></a-entity>
       <a-entity leg="side:right;target:#right-foot;structure:#structure;origin:#head"></a-entity>
     </a-entity>
-
-
   </a-entity>
-
-
-
-
 
   <!-- third tracker, automated correction if any -->
   <a-entity vive-tracker="index:2">
