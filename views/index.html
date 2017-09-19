@@ -5,7 +5,9 @@
 <!--
 <script src="http://localhost:9000/build/aframe-master.js"></script>
 -->
-<script src="https://rawgit.com/chenzlabs/aframe/master/dist/aframe-master.js"></script>
+<!--script src="https://rawgit.com/chenzlabs/aframe/master/dist/aframe-master.js"></script -->
+<script src="https://rawgit.com/aframevr/aframe/3f116d9/dist/aframe-master.min.js"></script>
+
 <!--
 <script src="https://lo-th.github.io/fullik/build/fullik.js"></script>
 -->
@@ -25,7 +27,7 @@
         }
         return rtn;
       }
-   
+
       AFRAME.registerComponent("sync-model-position", {
         schema: {
           model: {type: 'selector'},
@@ -35,16 +37,16 @@
           leftHand: {type: 'string', default: '.left-hand'},
           rightHand: {type: 'string', default: '.right-hand'},
           headBone: {default: 2},
-          leftBone: {default: 5}, 
+          leftBone: {default: 5},
           rightBone: {default: 8},
         },
-        
+
         init: function (){
-          console.log("Model: "+this.data.model)
-          this.moveLowerArm = this.moveLowerArm.bind(this)
-          window.syncer = this;
+          window.syncComponent = this;
+          window.positioned = false;
+          this.rememberBones = this.rememberBones.bind(this)
         },
-        
+
         modelElement: function () { return this.data.model || this.el; },
 
         update: function (oldData) {
@@ -70,57 +72,68 @@
           }
           return this.model;
         },
-        
-        moveLowerArm: function(){
-          if(!this.bones) return
-          var lowerArmL;
-          
-          
-          
-          for(var i=0; i< this.bones.length; i++){
-            var bone = this.bones[i]
-            if(bone.name == "LowerArm.L"){
-              lowerArmL = bone
-            }
-          }
-          
-          if(!this.structure){
-            this.structure = document.querySelector("#structure").components.structure
-          }
-          
-          for(var j=0; j<this.structure.solver.chains.length; j++){
-            var chain = this.structure.solver.chains[j]
-            console.log("CHAIN NAME: ", chain.name )
-          }
-          
-          
 
+        setPosition:function(bone, src){
+          bone.position.x = src.getStartLocation().x;
+          bone.position.y = src.getStartLocation().y;
+          bone.position.z = src.getStartLocation().z;
+        },
+
+        moveArms: function(){
+          if(!this.bones) return
           
+          this.setPosition(this.collarL, window.structure.solver.chains[1].bones[0])
+          this.setPosition(this.upperArmL, window.structure.solver.chains[1].bones[1])
+          this.setPosition(this.lowerArmL, window.structure.solver.chains[1].bones[2])
+          this.setPosition(this.handL, window.structure.solver.chains[1].bones[3])
+
+          this.setPosition(this.collarR, window.structure.solver.chains[2].bones[0])
+          this.setPosition(this.upperArmR, window.structure.solver.chains[2].bones[1])
+          this.setPosition(this.lowerArmR, window.structure.solver.chains[2].bones[2])
+          this.setPosition(this.handR, window.structure.solver.chains[2].bones[3])
+
+
         },
 
         rememberBones: function () {
           if (!this.bones) {
             if (!this.model || !this.model.geometry) { return; }
             this.bones = this.model.skeleton.bones;
+            for(var i=0; i< this.bones.length; i++){
+              var bone = this.bones[i]
+              window[bone.name.split(".").join("")] = bone
+              switch(bone.name){
+                case("Collar.L"): this.collarL = bone; break;
+                case("Collar.R"): this.collarR = bone; break;
+                case ("UpperArm.L"): this.upperArmL = bone; break;
+                case ("UpperArm.R"): this.upperArmR = bone; break;
+                case ("LowerArm.L"): this.lowerArmL = bone; break;
+                case ("LowerArm.R"): this.lowerArmR = bone; break;
+                case ("Hand.R"): this.handR = bone; break;
+                case ("Hand.L"): this.handL = bone; break;
+
+              }
+            }
           }
-          return this.bones;            
+          return this.bones;
         },
-          
+
         tick: function (t, dt) {
-          var bone, obj, origin;          
-          this.moveLowerArm();
-          
-            
-          if (!this.rememberModel()) { return; }  
-          if (!this.rememberBones()) { return; }  
+          var bone, obj, origin;
+
+          if (!this.rememberModel()) { return; }
+          if (!this.rememberBones()) { return; }
+
+          this.moveArms()
+          return;
 
           if (!this.origin) this.origin = nearestParentQuerySelector(this.data.origin, this.modelElement());
           if (!this.head) this.head = nearestParentQuerySelector(this.data.head, this.modelElement());
           if (!this.leftHand) this.leftHand = nearestParentQuerySelector(this.data.leftHand, this.modelElement());
           if (!this.rightHand) this.rightHand = nearestParentQuerySelector(this.data.rightHand, this.modelElement());
-          
-          
-          
+
+
+
           origin = this.origin;
           bone = this.bones[this.data.headBone];
           obj = this.head;
@@ -132,7 +145,7 @@
               bone.position.applyAxisAngle(Y_AXIS, -origin.object3D.rotation.y);
             }
           }
-          
+
           bone = this.bones[this.data.leftBone];
           obj = this.leftHand;
           if (obj) {
@@ -142,8 +155,8 @@
               //bone.quaternion.copy(obj.object3D.quaternion);
               bone.position.applyAxisAngle(Y_AXIS, -origin.object3D.rotation.y);
             }
-          } 
-          
+          }
+
           bone = this.bones[this.data.rightBone];
           obj = this.rightHand;
           if (obj) {
@@ -163,7 +176,7 @@
   var Z_AXIS = new Fullik.V3( 0, 0, 1 );
 
   //var scale = 1; //0.5; //20;
-  
+
   AFRAME.registerComponent('structure', {
     init: function () {
       this.solver = new Fullik.Structure(this.el.sceneEl.object3D);
@@ -173,20 +186,20 @@
 
       this.originalUpdateChainMesh = this.solver.updateChainMesh.bind(this.solver);
       this.solver.updateChainMesh = this.updateChainMesh.bind(this);
-      
+
       this.tick = AFRAME.utils.throttleTick(this.throttledTick, 100, this);
     },
-    
+
     updateChainMesh: function (chain, meshChain, chainIndex) {
       // handle timing ourselves... this.originalUpdateChainMesh(chain, meshChain, chainIndex);
     },
 
     addBoneMesh: function (bone) {
       var scale = 0.025;
-      
+
         var size = bone.mLength;
         var color = bone.color;
-        
+
         var g = new THREE.CylinderBufferGeometry ( scale*1, scale*0.5, size, 4 );
         g.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) )
         g.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, size*0.5 ) );
@@ -236,30 +249,30 @@
         if (this.el.object3D) this.el.object3D.add(b); //this.scene.add( b );
         if( extraMesh ) b.add( extraMesh );
         return b;
-    }, 
-    
+    },
+
     needUpdate: function () { this.needsUpdate = true; },
-    
+
     update: function (oldData) { this.needUpdate(); },
-    
+
     throttledTick: function () {
       if (this.needsUpdate) {
         this.needsUpdate = false;
 
         //console.log('structure: solver update');
         this.solver.update();
-        
+
         for (var i=0; i<this.solver.chains.length; i++) {
           this.originalUpdateChainMesh(this.solver.getChain(i), this.solver.meshChains[i], i);
         }
       }
     },
-    
+
     remove: function () {
       delete this.solver;
     }
   });
-  
+
   function findInParents(el, selector) {
     for (var parent = el.parentElement; parent; el = parent, parent = el.parentElement) {
       var qs = parent.querySelector(selector);
@@ -272,7 +285,7 @@
     var structure = findInParents(el, '[structure]');
     return structure ? structure : null;
   }
-  
+
   function getClosestStructure(el) {
     var structure = getClosestStructureParent(el);
     return structure ? structure.components.structure : null;
@@ -287,12 +300,12 @@
   }
 
   function nearEquals(v1, v2) {
-    return (v1.x === v2.x && v1.y === v2.y && v1.z === v2.z);  
+    return (v1.x === v2.x && v1.y === v2.y && v1.z === v2.z);
   }
 
   function checkForChanges(self) {
     var lastTargetPosition = self.lastTargetPosition || new Fullik.V3(0,0,0);
-      
+
     // because we headlocked the model (at least for now),
     // need to compute target position relative to HMD position and update this.targetPosition
     lastTargetPosition.copy(self.data.target.object3D.position);
@@ -301,26 +314,26 @@
       lastTargetPosition.sub(self.data.origin.object3D.position);
       //lastTargetPosition.applyQuaternion(self.data.origin.object3D.quaternion);
       lastTargetPosition.applyAxisAngle(Y_AXIS, -self.data.origin.object3D.rotation.y);
-    }    
-    
+    }
+
     if (!nearEquals(lastTargetPosition, self.targetPosition)) {
       self.targetPosition.copy(lastTargetPosition);
-      self.structure.needUpdate();      
+      self.structure.needUpdate();
       return true;
-    }      
-  }  
-    
+    }
+  }
+
   AFRAME.registerComponent('spine', {
     schema: {
       structure: {type: 'selector'},
-      waistHeight: {default: 0.85},      
+      waistHeight: {default: 0.85},
       tailbone: {default: 0.01},
       waistToNeck: {default: 0.5},
-      neck: {default: 0.01},      
-      color: {type: 'color', default: 'white'},      
-      target: {type: 'selector'}      
+      neck: {default: 0.01},
+      color: {type: 'color', default: 'white'},
+      target: {type: 'selector'}
     },
-    
+
     init: function () {
       this.chain = newChain(this.data.color);
 /*
@@ -332,35 +345,38 @@
       this.chain.addConsecutiveRotorConstrainedBone(Y_AXIS, this.data.neck, 40);
 */
       this.basebone = new Fullik.Bone(new Fullik.V3(0, 0, 0),
-                                      new Fullik.V3(0, -0.125 /* eyes to bottom of head */ - this.data.neck, 0.08));
-      
-      this.chain.addBone(this.basebone);      
+                                      new Fullik.V3(0, -0.125 /* eyes to bottom of head */ - this.data.neck, 0));
+
+      window.head = this.basebone
+      this.chain.addBone(this.basebone);
       this.chain.setRotorBaseboneConstraint("local", this.basebone.getDirectionUV(), 0);
       // what the hell? spine goes straight up regardless of axis unless we rotor constrain, and even then it's the wrong way?
       this.chain.addConsecutiveHingedBone(Y_AXIS.negated(), this.data.waistToNeck/2, "global", X_AXIS, 0, 0, Y_AXIS.negated());
       this.chain.addConsecutiveRotorConstrainedBone(Y_AXIS.negated(), this.data.waistToNeck/2, 0);
-      
+
       this.data.target.addEventListener('componentchanged', this.onTargetChanged.bind(this));
-      
+
       this.structure = getClosestStructure(this.data.structure || this.el);
-      
+
       if (!this.structure) {
         console.error('spine: this has no structure');
         return;
       }
-        
+
       this.structure.solver.add(this.chain, this.data.target.object3D.position, true);
-      this.structure.needUpdate();      
-    }, 
+      this.structure.needUpdate();
+
+      window.structure = this.structure
+    },
 
     onTargetChanged: function (evt) {
       // this.structure.solver.update(); // so it changes with inspector
       this.structure.needUpdate();
-    }, 
-    
+    },
+
     update: function (oldData) {
     },
-    
+
     remove: function () {
       // TODO: unhook from solver
       delete this.chain;
@@ -371,28 +387,29 @@
 
   //var neckToShoulderLength = scale * 0.16;
   //var upperArmLength = scale * 0.40;
-  
+
   AFRAME.registerComponent('arm', {
     schema: {
       structure: {type: 'selector'},
       side: {type: 'string', oneOf: ['left', 'right'], default: 'right'},
-      neckToShoulder: {default: 0.12},
+      neckToShoulder: {default: 0.20},
       shoulderToElbow: {default: 0.24},
       elbowToWrist: {default: 0.24},
       wristToTip: {default: 0.05},
-      color: {type: 'color', default: 'white'},      
-      target: {type: 'selector'},      
-      origin: {type: 'selector'}      
+      color: {type: 'color', default: 'white'},
+      target: {type: 'selector'},
+      origin: {type: 'selector'}
     },
-    
+
     init: function () {
       this.chain = newChain(this.data.color);
+
       var chain_name = this.data.side == "right" ? "right_arm_chain" : "left_arm_chain"
-      console.log("Setting name "+chain_name )
-      
+
+      this.data.side == "right"? window.rightIKs = this : window.leftIKs = this;
+
       this.chain.name = chain_name
-      console.log(" get chain name "+this.chain.name )
-      
+
       var sideSign = (this.data.side === 'right' ? 1 : -1);
       this.basebone = new Fullik.Bone(new Fullik.V3( 0, 0, 0 ), new Fullik.V3( 0, this.data.neckToShoulder, 0));
       var name = this.data.side == "right" ? "right_arm_bone" : "left_arm_bone"
@@ -405,11 +422,11 @@
       this.chain.addConsecutiveRotorConstrainedBone(new Fullik.V3(sideSign * 0.3, 0, 1), this.data.shoulderToElbow, 135);
       this.chain.addConsecutiveHingedBone(Y_AXIS.negated(), this.data.elbowToWrist, 'local', sideSign >= 0 ? X_AXIS : X_AXIS.negated(), 180, 0, Y_AXIS.negated());
       this.chain.addConsecutiveHingedBone(Y_AXIS.negated(), this.data.wristToTip, 'local', Y_AXIS.negated(), 70, 70, Z_AXIS);
-      
+
       this.targetPosition = new THREE.Vector3();
-      
+
       this.structure = getClosestStructure(this.data.structure || this.el);
-      
+
       if (!this.structure) {
         console.error('arm: this has no structure');
         return;
@@ -419,27 +436,27 @@
 
       // force change initially
       this.structure.needUpdate();
-      
+
       // listen for inspector changes when ticks are frozen
       this.data.target.addEventListener('componentchanged', this.onTargetChanged.bind(this));
-    }, 
+    },
 
     onTargetChanged: function (evt) {
-      if (!this.el.sceneEl.isPlaying) { 
+      if (!this.el.sceneEl.isPlaying) {
         if (checkForChanges(this)) {
-          this.structure.throttledTick(); 
+          this.structure.throttledTick();
         }
       }
-    }, 
-    
+    },
+
     update: function (oldData) {
       checkForChanges(this);
     },
-    
+
     tick: function (t, dt) {
       checkForChanges(this);
     },
-    
+
     remove: function () {
       // TODO: unhook from solver
       delete this.chain;
@@ -456,11 +473,11 @@
       hipToKnee: {default: 0.37},
       kneeToAnkle: {default: 0.37},
 //      ankleToTip: {default: 0.05},
-      color: {type: 'color', default: 'white'},      
-      target: {type: 'selector'},      
-      origin: {type: 'selector'}      
+      color: {type: 'color', default: 'white'},
+      target: {type: 'selector'},
+      origin: {type: 'selector'}
     },
-    
+
     init: function () {
       this.chain = newChain(this.data.color);
       var sideSign = (this.data.side === 'right' ? 1 : -1);
@@ -472,15 +489,15 @@
 
       // this axis value angles the hips to the side, and forward, in right orientation for hip swivel
       this.chain.setRotorBaseboneConstraint('local', this.basebone.getDirectionUV(), 0);
-      
+
       this.chain.addConsecutiveRotorConstrainedBone(Y_AXIS.negated(), this.data.hipToKnee, 90); // 70... this works better
-      
-/*      
+
+/*
 // kinda works...      this.chain.addConsecutiveRotorConstrainedBone(new Fullik.V3(sideSign * -1, 0, 0), this.data.hipToKnee, 50);
       this.chain.addConsecutiveRotorConstrainedBone(new Fullik.V3(0, 1, 0), this.data.hipToKnee, 60); // 70... this works better
 *
       // this axis value angles the hips to the side, and down, not in right orientation for hip swivel
-      this.chain.setRotorBaseboneConstraint('local', new Fullik.V3(sideSign * 0.6, 0, -1), 0); 
+      this.chain.setRotorBaseboneConstraint('local', new Fullik.V3(sideSign * 0.6, 0, -1), 0);
       // when that's done, the axis provided here doesn't seem to do much of anything :-/
       this.chain.addConsecutiveRotorConstrainedBone(new Fullik.V3(-1, 0, -1).normalize(), this.data.hipToKnee, 30);
 */
@@ -491,55 +508,55 @@
 
       this.chain.addConsecutiveRotorConstrainedBone(Y_AXIS.negated(), this.data.ankleToTip, 0*20);
       //this.chain.addConsecutiveHingedBone(Y_AXIS.negated(), this.data.ankleToTip, 'local', Y_AXIS.negated(), 70, 0, Z_AXIS);
-      
+
       this.targetPosition = new THREE.Vector3();
-/*      
+/*
       this.targetPosition.copy(this.data.target.object3D.position);
       if (this.data.origin) {
         // FIXME: needs to include origin rotation!!! this does not
         this.targetPosition.sub(this.data.origin.object3D.position);
-      }    
-*/      
+      }
+*/
       this.structure = getClosestStructure(this.data.structure || this.el);
-      
+
       if (!this.structure) {
         console.error('leg: this has no structure');
         return;
-      }        
+      }
 //      this.structure.solver.connectChain(this.chain, 0, 0, 'start', this.targetPosition, true, this.data.color);
       this.structure.solver.connectChain(this.chain, 0, 2, 'start', this.targetPosition, true, this.data.color);
-      
+
       // force change initially
       this.structure.needUpdate();
-      
+
       // listen for inspector changes when ticks are frozen
       this.data.target.addEventListener('componentchanged', this.onTargetChanged.bind(this));
-    }, 
+    },
 
     onTargetChanged: function (evt) {
-      if (!this.el.sceneEl.isPlaying) { 
+      if (!this.el.sceneEl.isPlaying) {
         if (checkForChanges(this)) {
-          this.structure.throttledTick(); 
+          this.structure.throttledTick();
         }
       }
-    }, 
-    
+    },
+
     update: function (oldData) {
       checkForChanges(this);
     },
-    
+
     tick: function (t, dt) {
       checkForChanges(this);
     },
-    
+
     remove: function () {
       // TODO: unhook from solver
       delete this.chain;
       delete this.structure;
       delete this.basebone;
     }
-  });    
-  
+  });
+
 </script>
 
 <script>
@@ -571,12 +588,12 @@
       labelEl.setAttribute('width', '0.1');
       labelEl.setAttribute('height', '0.1');
       labelEl.setAttribute('depth', '0.001');
-      labelEl.setAttribute('rotation', '-90 0 0');      
+      labelEl.setAttribute('rotation', '-90 0 0');
       this.el.appendChild(labelEl);
     }
   })
 </script>
-  
+
 <script>
   AFRAME.registerComponent('sync-pose', {
     schema: {type: 'selector'},
@@ -586,14 +603,46 @@
     }
   });
 </script>
-  
+
 </head>
 <body>
+
+  <script>
+  var captures
+  function onCaptureClick(){
+    if(!captures){
+      captures = []
+    }
+    var capture = {
+
+      "head": { "start" : window.head.getStartLocation(), "end": window.head.getStartLocation()}
+    }
+
+
+
+    for(var i = 0; i < window.structure.solver.chains[1].bones.length; i++){
+      capture["left_bone_"+i] = {"start" : window.structure.solver.chains[1].bones[i].getStartLocation(), "end": window.structure.solver.chains[1].bones[i].getEndLocation()}
+    }
+
+    for(var i = 0; i < window.structure.solver.chains[2].bones.length; i++){
+      capture["right_bone_"+i] = {"start" : window.structure.solver.chains[2].bones[i].getStartLocation(), "end": window.structure.solver.chains[2].bones[i].getEndLocation()}
+    }
+
+    captures.push( capture )
+  }
+
+  function onPrintCaptures(){
+    console.log(JSON.stringify(captures))
+  }
+  </script>
+
+<a href="#" onClick="onCaptureClick()">Capture</a>
+<a href="#" onClick="onPrintCaptures()">Print</a>
 
 <a-scene>
   <a-sky color="#3CF"></a-sky>
   <a-box opacity="0.5" depth="10" width="10" height="0.1" position="0 -0.05 0" color="brown"></a-box>
-  
+
   <a-entity id="spectator" camera look-controls position="-1 1.25 -1" rotation="0 225 0">
   </a-entity>
 
@@ -602,65 +651,62 @@
     <a-entity id="head" non-vr-position="0 1.55 0.0" camera="userHeight:1.55; active:false">
       <a-sphere opacity="0.5" scale="0.1 0.125 0.075">
         <a-cone opacity="0.5" color="magenta" position="0 -0.25 -1.05" scale="0.03 0.3 0.04" rotation="-90 0 0"></a-cone>
-      </a-sphere>  
+      </a-sphere>
     </a-entity>
-  
+
     <a-entity id="left-hand" non-vr-position="-0.25 1.05 -0.25" oculus-touch-controls="hand:left" vive-controls="hand:left" tracker-marker="L">
       <a-sphere opacity="0.5" scale="0.025 0.02 0.1" color="#ff00ff">
         <a-cone opacity="0.5" color="red" position="0 -0.25 -1" scale="0.5 2 0.5" rotation="-90 0 0"></a-cone>
       </a-sphere>
     </a-entity>
-  
+
     <a-entity id="right-hand" non-vr-position="0.25 1.05 0.25" oculus-touch-controls="hand:right" vive-controls="hand:right" tracker-marker="R">
       <a-sphere opacity="0.5" scale="0.025 0.02 0.1">
         <a-cone opacity="0.5" color="blue" position="0 -0.25 -1" scale="0.5 2 0.5" rotation="-90 0 0"></a-cone>
       </a-sphere>
     </a-entity>
-  
+
     <a-entity id="left-foot" position="-0.15 0.0 0.0" no-vive-tracker="index:0" tracker-marker="0">
       <a-sphere opacity="0.5" scale="0.04 0.02 0.1">
         <a-cone opacity="0.5" color="red" position="0 -0.25 -1" scale="0.5 2 0.5" rotation="-90 0 0"></a-cone>
       </a-sphere>
     </a-entity>
-     
+
     <a-entity id="right-foot" position="0.15 0.2 0.25" no-vive-tracker="index:1" tracker-marker="1">
       <a-sphere opacity="0.5" scale="0.04 0.02 0.1">
         <a-cone opacity="0.5" color="blue" position="0 -0.25 -1" scale="0.5 2 0.5" rotation="-90 0 0"></a-cone>
       </a-sphere>
     </a-entity>
 
+
+
+
     <!-- really we only want position nailed, and Y rotation, not full orientation -->
     <a-entity sync-pose="#head" id="model">
-      
-      <a-entity id="arpit" 
-                
+
+      <a-entity id="arpit"
               class="avatar-model"
               position="0 0 -2"
-            object-model="src: models/avatar_flipped_monochrome"
-            sync-model-position="origin:#head;leftHand:#left-hand;rightHand:#right-hand"></a-entity>
-      
+              object-model="src: models/avatar_flipped_chestbones"
+              sync-model-position="origin:#head;leftHand:#left-hand;rightHand:#right-hand"></a-entity>
+
+
       <!-- Children init before parent, so to make sure we have structure in time, make it peer -->
       <a-entity id="structure" structure></a-entity>
       <!-- Build the body from head down with bones -->
       <a-entity spine="target:#head;structure:#structure"></a-entity>
       <a-entity class="left_arm_entity" arm="side:left;target:#left-hand;structure:#structure;origin:#head"></a-entity>
-      <a-entity arm="side:right;target:#right-hand;structure:#structure;origin:#head;color:0xff00ff"></a-entity>      
+      <a-entity class="right_arm_entity" arm="side:right;target:#right-hand;structure:#structure;origin:#head;color:0xff00ff"></a-entity>
       <a-entity leg="side:left;target:#left-foot;structure:#structure;origin:#head"></a-entity>
-      <a-entity leg="side:right;target:#right-foot;structure:#structure;origin:#head"></a-entity>      
+      <a-entity leg="side:right;target:#right-foot;structure:#structure;origin:#head"></a-entity>
     </a-entity>
-    
-    
   </a-entity>
-  
-  
-   
-  
-  
+
   <!-- third tracker, automated correction if any -->
   <a-entity vive-tracker="index:2">
    <a-entity tracker-marker="2"></a-entity>
   </a-entity>
-  
+
 </a-scene>
 
 <script>
@@ -677,8 +723,8 @@
     console.log("vrPosition()");
     var sceneEl = document.querySelector('a-scene');
     // switch camera and look-controls to head so you don't get sick wearing the HMD
-    sceneEl.querySelector('#head').setAttribute('camera', 'active', true);    
-    sceneEl.querySelector('#head').setAttribute('look-controls', '');    
+    sceneEl.querySelector('#head').setAttribute('camera', 'active', true);
+    sceneEl.querySelector('#head').setAttribute('look-controls', '');
   }
 
   function nonVRPosition() {
@@ -693,7 +739,7 @@
       el.setAttribute('position', attr);
     });
   }
-  
+
   function onSceneLoaded() {
     console.log("onSceneLoaded()");
     if (!navigator.getVRDisplays) {
@@ -702,10 +748,10 @@
           //document.querySelector("[structure]").components.structure.needUpdate();
     } else {
       navigator.getVRDisplays().then(function (displays) {
-        if (displays && displays.length > 0) { 
+        if (displays && displays.length > 0) {
           console.log("navigator.getVRDisplays() then displays[0]");
           // nonVRPosition(); //
-          vrPosition(); 
+          vrPosition();
         } else {
           console.log("navigator.getVRDisplays() then no displays[0]");
           nonVRPosition();
@@ -713,18 +759,22 @@
         }
       }).catch(function (err) {
         console.log("navigator.getVRDisplays() catch");
-        nonVRPosition(); 
+        nonVRPosition();
           //document.querySelector("[structure]").components.structure.needUpdate();
       });
     }
   }
-  
+
   var sceneEl = document.querySelector('a-scene');
   if (sceneEl.hasLoaded) {
     onSceneLoaded();
   } else {
     sceneEl.addEventListener('loaded', onSceneLoaded);
   }
+
+
+
 </script>
+
 </body>
 </html>
