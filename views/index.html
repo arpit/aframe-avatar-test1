@@ -82,14 +82,6 @@
         moveArms: function(){
           if(!this.bones) return
 
-
-
-          // window.leftIKs = [leftCollarBoneIK, leftUpperArmBoneIK, leftLowerArmBoneIK, lefthandBoneIK ]
-          // window.rightIKs = [rightCollarBoneIK, rightUpperArmBoneIK, rightLowerArmBoneIK, righthandBoneIK]
-
-          // window.leftIKs = window.structure.solver.chains[1].bones
-          // window.rightIKs =  window.structure.solver.chains[2].bones
-
           this.setPosition(this.collarL, window.structure.solver.chains[1].bones[0])
           this.setPosition(this.upperArmL, window.structure.solver.chains[1].bones[1])
           this.setPosition(this.lowerArmL, window.structure.solver.chains[1].bones[2])
@@ -99,79 +91,6 @@
           this.setPosition(this.upperArmR, window.structure.solver.chains[2].bones[1])
           this.setPosition(this.lowerArmR, window.structure.solver.chains[2].bones[2])
           this.setPosition(this.handR, window.structure.solver.chains[2].bones[3])
-
-
-          // this.upperArmL.position.x = window.structure.solver.chains[1].bones[1].getStartLocation().x
-          // this.upperArmL.position.y = window.structure.solver.chains[1].bones[1].getStartLocation().y
-          // this.upperArmL.position.z = window.structure.solver.chains[1].bones[1].getStartLocation().z
-          //
-          // this.lowerArmL.position.x = window.structure.solver.chains[1].bones[2].getStartLocation().x
-          // this.lowerArmL.position.y =  window.structure.solver.chains[1].bones[2].getStartLocation().y
-          // this.lowerArmL.position.z =  window.structure.solver.chains[1].bones[2].getStartLocation().z
-          //
-          // this.handL.position.x = window.structure.solver.chains[1].bones[3].getStartLocation().x
-          // this.handL.position.y =  window.structure.solver.chains[1].bones[3].getStartLocation().y
-          // this.handL.position.z =  window.structure.solver.chains[1].bones[3].getStartLocation().z
-
-          /*
-
-          var leftArmChain = document.querySelector(".left_arm_entity").components.arm.chain;
-          var rightArmChain = document.querySelector(".right_arm_entity").components.arm.chain;
-
-          var leftCollarBoneIK = leftArmChain.bones[0]
-          var leftUpperArmBoneIK = leftArmChain.bones[1]
-          var leftLowerArmBoneIK = leftArmChain.bones[2]
-          var lefthandBoneIK = leftArmChain.bones[3]
-
-          var rightCollarBoneIK = rightArmChain.bones[0]
-          var rightUpperArmBoneIK = rightArmChain.bones[1]
-          var rightLowerArmBoneIK = rightArmChain.bones[2]
-          var righthandBoneIK = rightArmChain.bones[3]
-
-          this.collarL.position.x = leftCollarBoneIK.getStartLocation().x
-          this.collarL.position.y = leftCollarBoneIK.getStartLocation().y
-          this.collarL.position.z = leftCollarBoneIK.getStartLocation().z
-
-          this.upperArmL.position.x = leftUpperArmBoneIK.getStartLocation().x
-          this.upperArmL.position.y = leftUpperArmBoneIK.getStartLocation().y
-          this.upperArmL.position.z = leftUpperArmBoneIK.getStartLocation().z
-
-          this.lowerArmL.position.x = leftLowerArmBoneIK.getStartLocation().x
-          this.lowerArmL.position.y = leftLowerArmBoneIK.getStartLocation().y
-          this.lowerArmL.position.z = leftLowerArmBoneIK.getStartLocation().z
-
-          this.handL.position.x = lefthandBoneIK.getStartLocation().x
-          this.handL.position.y = lefthandBoneIK.getStartLocation().y
-          this.handL.position.z = lefthandBoneIK.getStartLocation().z
-
-          */
-
-          //this.upperArmR.position.set( window.structure.solver.chains[2].bones[1].getStartLocation() )
-          //console.log( window.structure.solver.chains[2])
-          // this.upperArmR.position.x = window.structure.solver.chains[2].bones[1].getStartLocation().x
-          // this.upperArmR.position.y = window.structure.solver.chains[2].bones[1].getStartLocation().y
-          // this.upperArmR.position.z = window.structure.solver.chains[2].bones[1].getStartLocation().z
-          //
-          // this.lowerArmR.position.x = window.structure.solver.chains[2].bones[2].getStartLocation().x
-          // this.lowerArmR.position.y = window.structure.solver.chains[2].bones[2].getStartLocation().y
-          // this.lowerArmR.position.z = window.structure.solver.chains[2].bones[2].getStartLocation().z
-          //
-          // this.handR.position.x = window.structure.solver.chains[2].bones[3].getStartLocation().x
-          // this.handR.position.y =  window.structure.solver.chains[2].bones[3].getStartLocation().y
-          // this.handR.position.z =  window.structure.solver.chains[2].bones[3].getStartLocation().z
-
-          //this.lowerArmR.position.set( window.structure.solver.chains[2].bones[2].getStartLocation() )
-
-
-          //
-          // this.upperArmR.position.x = leftUpperArmBoneIK.getStartLocation().x
-          // this.upperArmR.position.y = leftUpperArmBoneIK.getStartLocation().y
-          // this.upperArmR.position.z = leftUpperArmBoneIK.getStartLocation().z
-          //
-          // this.lowerArmR.position.x = leftLowerArmBoneIK.getStartLocation().x
-          // this.lowerArmR.position.y = leftLowerArmBoneIK.getStartLocation().y
-          // this.lowerArmR.position.z = leftLowerArmBoneIK.getStartLocation().z
-
 
 
         },
@@ -206,6 +125,7 @@
           if (!this.rememberBones()) { return; }
 
           this.moveArms()
+          return;
 
           if (!this.origin) this.origin = nearestParentQuerySelector(this.data.origin, this.modelElement());
           if (!this.head) this.head = nearestParentQuerySelector(this.data.head, this.modelElement());
