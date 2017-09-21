@@ -5,8 +5,12 @@
 <!--
 <script src="http://localhost:9000/build/aframe-master.js"></script>
 -->
+<!--<script src="https://aframe.io/releases/0.6.1/aframe.min.js"></script>-->
+<script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
 <!--script src="https://rawgit.com/chenzlabs/aframe/master/dist/aframe-master.js"></script -->
-<script src="https://rawgit.com/aframevr/aframe/3f116d9/dist/aframe-master.min.js"></script>
+<!--<script src="https://rawgit.com/aframevr/aframe/3f116d9/dist/aframe-master.min.js"></script>-->
+
+<script src="https://unpkg.com/aframe-motion-capture-components/dist/aframe-motion-capture-components.min.js"></script>
 
 <!--
 <script src="https://lo-th.github.io/fullik/build/fullik.js"></script>
@@ -650,7 +654,7 @@
 <a href="#" onClick="onCaptureClick()">Capture</a>
 <a href="#" onClick="onPrintCaptures()">Print</a>
 
-<a-scene>
+<a-scene avatar-recorder avatar-replayer>
   <a-assets>
     <a-asset-item id="model_headless" src="models/avatar_headless.gltf"></a-asset-item>
     <a-asset-item id="model_head" src="models/head.gltf"></a-asset-item>
