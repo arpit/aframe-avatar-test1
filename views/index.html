@@ -649,10 +649,26 @@
   function onPrintCaptures(){
     console.log(JSON.stringify(captures))
   }
+
+  function onPlayMocap(){
+      var scene = document.querySelector("a-scene");
+      scene.setAttribute("avatar-replayer", "");
+      console.log("Playing Mocap");
+      console.log(scene);
+  }
+
+  function onStopMocap(){
+      var scene = document.querySelector("a-scene");
+      scene.removeAttribute("avatar-replayer");
+      console.log("Stopping Mocap");
+      console.log(scene);
+  }
   </script>
 
 <a href="#" onClick="onCaptureClick()">Capture</a>
 <a href="#" onClick="onPrintCaptures()">Print</a>
+<a href="#" onClick="onPlayMocap()">Play Mocap</a>
+<a href="#" onClick="onStopMocap()">Stop Mocap</a>
 
 <a-scene avatar-recorder avatar-replayer>
   <a-assets>
