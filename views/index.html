@@ -69,13 +69,12 @@
               if (gltfModel.model && gltfModel.model.children && gltfModel.model.children.length) {
                 this.modelType = 'gltf-model';
                 // GLTF exports the scene, not just the object
-                this.model = objectModel.model.children[0].children[0].children[0];
+                this.model = gltfModel.model.children[0].children[0].children[0];
               }
             }
             if(objectModel){
               this.modelType = 'object-model';
               this.model = objectModel.model.children[0]
-
             }
 
           }
@@ -89,7 +88,6 @@
         },
 
         moveArms: function(){
-          console.log("Bones", this.bones)
           if(!this.bones) return
 
           this.setPosition(this.collarL, window.structure.solver.chains[1].bones[0])
