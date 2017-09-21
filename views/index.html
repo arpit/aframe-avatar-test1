@@ -59,16 +59,25 @@
         rememberModel: function () {
           if (!this.model) {
             var jsonModel = this.modelElement().components['json-model'];
+            var objectModel = this.modelElement().components['object-model'];
+            var gltfModel = this.modelElement().components['gltf-model'];
             if (jsonModel) {
               this.modelType = 'json-model';
               this.model = jsonModel.model;
-            } else {
-              var objectModel = this.modelElement().components['object-model'];
-              if (objectModel && objectModel.model && objectModel.model.children && objectModel.model.children.length) {
-                this.modelType = 'object-model';
-                this.model = objectModel.model.children[0];
+            }
+            if(gltfModel){
+              if (gltfModel.model && gltfModel.model.children && gltfModel.model.children.length) {
+                this.modelType = 'gltf-model';
+                // GLTF exports the scene, not just the object
+                this.model = objectModel.model.children[0].children[0].children[0];
               }
             }
+            if(objectModel){
+              this.modelType = 'object-model';
+              this.model = objectModel.model.children[0]
+
+            }
+
           }
           return this.model;
         },
@@ -80,6 +89,7 @@
         },
 
         moveArms: function(){
+          console.log("Bones", this.bones)
           if(!this.bones) return
 
           this.setPosition(this.collarL, window.structure.solver.chains[1].bones[0])
@@ -102,15 +112,15 @@
             for(var i=0; i< this.bones.length; i++){
               var bone = this.bones[i]
               window[bone.name.split(".").join("")] = bone
-              switch(bone.name){
-                case("Collar.L"): this.collarL = bone; break;
-                case("Collar.R"): this.collarR = bone; break;
-                case ("UpperArm.L"): this.upperArmL = bone; break;
-                case ("UpperArm.R"): this.upperArmR = bone; break;
-                case ("LowerArm.L"): this.lowerArmL = bone; break;
-                case ("LowerArm.R"): this.lowerArmR = bone; break;
-                case ("Hand.R"): this.handR = bone; break;
-                case ("Hand.L"): this.handL = bone; break;
+              switch(true){
+                case(bone.name.indexOf("CollarL") != -1): this.collarL = bone; break;
+                case(bone.name.indexOf("CollarR") != -1): this.collarR = bone; break;
+                case (bone.name.indexOf("UpperArmL") != -1): this.upperArmL = bone; break;
+                case (bone.name.indexOf("UpperArmR") != -1): this.upperArmR = bone; break;
+                case (bone.name.indexOf("LowerArmL") != -1): this.lowerArmL = bone; break;
+                case (bone.name.indexOf("LowerArmR") != -1): this.lowerArmR = bone; break;
+                case (bone.name.indexOf("HandR") != -1): this.handR = bone; break;
+                case (bone.name.indexOf("HandL") != -1): this.handL = bone; break;
 
               }
             }
@@ -119,10 +129,13 @@
         },
 
         tick: function (t, dt) {
-          var bone, obj, origin;
 
+          var bone, obj, origin;
+          //console.log("before remmber model")
           if (!this.rememberModel()) { return; }
+          //console.log("after remember model")
           if (!this.rememberBones()) { return; }
+          //console.log("after remmeber bones")
 
           this.moveArms()
           return;
@@ -640,6 +653,10 @@
 <a href="#" onClick="onPrintCaptures()">Print</a>
 
 <a-scene>
+  <a-assets>
+    <a-asset-item id="model_headless" src="models/avatar_headless.gltf"></a-asset-item>
+    <a-asset-item id="model_head" src="models/head.gltf"></a-asset-item>
+  </a-assets>
   <a-sky color="#3CF"></a-sky>
   <a-box opacity="0.5" depth="10" width="10" height="0.1" position="0 -0.05 0" color="brown"></a-box>
 
@@ -686,9 +703,14 @@
 
       <a-entity id="arpit"
               class="avatar-model"
-              position="0 0 0"
-              object-model="src: models/avatar_flipped_chestbones"
+              position="0 0 -2"
+              gltf-model="#model_headless"
               sync-model-position="origin:#head;leftHand:#left-hand;rightHand:#right-hand"></a-entity>
+
+              <a-entity id="arpit"
+                      class="avatar-model"
+                      position="0 0 0"
+                      gltf-model="#model_head"></a-entity>
 
 
       <!-- Children init before parent, so to make sure we have structure in time, make it peer -->
